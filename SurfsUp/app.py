@@ -3,6 +3,7 @@ from flask import Flask, jsonify
 from sqlalchemy import create_engine
 from sqlalchemy.ext.automap import automap_base
 from sqlalchemy.orm import Session
+from sqlalchemy.sql import and_
 from dateutil.relativedelta import relativedelta
 
 #################################################
@@ -32,15 +33,22 @@ last_12_months_data = session.query(Measurement.date, Measurement.prcp)\
     .all()
 precipitation_results = {result.date: result.prcp for result in last_12_months_data}
 
-# List of stations   
- 
+# List of stations  
+# QQ - station ID or station NAME?! ----------------------------------------------------- 
+all_stations = session.query(Station.name).all()
+all_stations_list = [station[0] for station in all_stations]
+
+# Dates and temperature observations of the most-active station for the previous year 
+last_12_months_temp_data = session.query(Measurement.date, Measurement.tobs)\
+    .filter(and_(Measurement.date >= year_before, Measurement.date <= most_recent_date))\
+    .filter(Measurement.station == 'USC00519281')\
+    .order_by(Measurement.tobs).all()
+temperatures = [temp[0] for temp in last_12_months_temp_data]
 
 #################################################
 # Flask Setup
 #################################################
 app = Flask(__name__)
-
-
 
 #################################################
 # Flask Routes
@@ -60,3 +68,14 @@ def homepage():
 @app.route("/api/v1.0/precipitation")
 def precipitation():
     return jsonify (precipitation_results)
+
+@app.route("/api/v1.0/stations")
+def stations():
+    return jsonify (all_stations_list)
+
+@app.route("/api/v1.0/tobs")
+def temperature_obs():
+    return jsonify (temperatures)
+
+if __name__ == "__main__":
+    app.run(debug=True)
