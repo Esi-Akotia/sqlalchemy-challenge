@@ -69,8 +69,8 @@ def homepage():
         f"/api/v1.0/precipitation<br/>"
         f"/api/v1.0/stations<br/>"
         f"/api/v1.0/tobs<br/>"
-        f"/api/v1.0/<start><br/>"
-        f"/api/v1.0/<start>/<end>"
+        f"/api/v1.0/<start> (enter start date)<br/>"
+        f"/api/v1.0/<start>/<end> (enter start and end dates)"
         )
 
 @app.route("/api/v1.0/precipitation")
@@ -126,5 +126,9 @@ def specified_range(start, end):
     }
     return jsonify (range_results)
 
+# Close Session
+session.close()
+
+# Run the app
 if __name__ == "__main__":
     app.run(debug=True)
